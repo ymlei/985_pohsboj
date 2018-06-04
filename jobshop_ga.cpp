@@ -10,27 +10,17 @@ DVector<int> machine_spare;
 DVector<int> process;
 DVector2D<TIME> endtime;
 
-using std::cout; ////////////////////////////////////////////////////////////////////////////////////////////
-				 /****************************** main func ******************************/
+/****************************** main func ******************************/
 
 CHROMO jobshop_GA(const DVector2D<PROCEDURE>& jobtable)
 {
 	product_count = jobtable.size();
 	proced_count = jobtable[0].size();
 	chromo_len = product_count * proced_count;
-	machine_count = 0;
-	for (int i = 0; i < product_count; ++i) {
-		for (int j = 0; j < proced_count; ++j) {
-			if (jobtable[i][j].machine > machine_count) {
-				machine_count = jobtable[i][j].machine;
-			}
-		}
-	}
-	++machine_count;
+	machine_count = proced_count;
 
-	srand(time(0));
 	DVector<CHROMO>* pop = new DVector<CHROMO>[POP_NUM];
-	for (int k = 0; k < POP_NUM; k++) {
+	for (int k = 0; k < POP_NUM; ++k) {
 		pop[k].reserve(POPULATION_SIZE * 2);
 		init_population(pop[k], jobtable);
 		#ifdef DEBUG
@@ -44,7 +34,9 @@ CHROMO jobshop_GA(const DVector2D<PROCEDURE>& jobtable)
 
 	for (int i = 1; i <= ITERATION_COUNT && local_best_cout < ITERATION_COUNT * 1 / 3; ++i) {
 		TIME last_best_time = best_chormo.time;
-		if (!(i % COMMUNACATION_CYCLE)) communication(pop);
+		if (i % COMMUNACATION_CYCLE == 0) {
+			communication(pop);
+		}
 		//std::cout << "iter: " << i << '\n';
 		for (int k = 0; k < POP_NUM; k++) {
 			//selfing_multi(jobtable, pop[k]);
