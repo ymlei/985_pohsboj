@@ -1,4 +1,4 @@
-#pragma once//
+#pragma once
 #include "DAlgorithm.h"
 
 const unsigned long dtl::xorshiftRANDMAX = 4294967295;
