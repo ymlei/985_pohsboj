@@ -96,6 +96,9 @@ void print_chormo(DVector<CHROMO>& pop) {
 		cout << "\n";
 	}
 } // void print_chormo(...)
+
+
+//产生初始种群函数，根据初始染色体，随机打乱，形成种群 
 void init_population(DVector<CHROMO>& pop, const DVector2D<PROCEDURE>& jobtable)
 {
 	DVector<int> init_chromo;
@@ -103,7 +106,7 @@ void init_population(DVector<CHROMO>& pop, const DVector2D<PROCEDURE>& jobtable)
 		for (int j = 0; j < proced_count; ++j) {
 			init_chromo.push_back(i);
 		}
-	}
+	} 
 
 	DVector<int> tmpchr;
 	for (int i = 0; i < POPULATION_SIZE; ++i) {
@@ -114,7 +117,8 @@ void init_population(DVector<CHROMO>& pop, const DVector2D<PROCEDURE>& jobtable)
 } // void init_population(...)
 
 
-  /************************* crossover ************************/
+/******************************交叉***************************/ 
+//顺序交叉（杂交）函数 
 DVector<int> chrtmp1;
 DVector<int> chrtmp2;
 void crossover(const DVector2D<PROCEDURE>& jobtable, DVector<CHROMO>& pop)
@@ -127,9 +131,9 @@ void crossover(const DVector2D<PROCEDURE>& jobtable, DVector<CHROMO>& pop)
 	int pop_orisize = pop.size();
 	for (int i = 0; i < POPULATION_SIZE * CROSSOVER_RATE / 2; ++i) {
 		parent1 = dtl::xorshiftRand() % POPULATION_SIZE;
-		parent2 = dtl::xorshiftRand() % POPULATION_SIZE;
+		parent2 = dtl::xorshiftRand() % POPULATION_SIZE;//随机选择两个父代 
 		pos1 = dtl::xorshiftRand() % chromo_len;
-		pos2 = dtl::xorshiftRand() % chromo_len;
+		pos2 = dtl::xorshiftRand() % chromo_len;//随机产生两个交叉点，确定染色体中间段 
 		if (pos1 > pos2) {
 			swaptmp = pos1;
 			pos1 = pos2;
@@ -137,11 +141,11 @@ void crossover(const DVector2D<PROCEDURE>& jobtable, DVector<CHROMO>& pop)
 		}
 		pop.resize(pop.size() + 2);
 		pop[pop_orisize].chromo.resize(chromo_len);
-		pop[pop_orisize + 1].chromo.resize(chromo_len);
+		pop[pop_orisize + 1].chromo.resize(chromo_len);//为两个子代开辟空间 
 		for (int j = 0; j < pos1; ++j) {
 			pop[pop_orisize].chromo[j] = -1;
 			pop[pop_orisize + 1].chromo[j] = -1;
-		}
+		} 
 		for (int j = pos1; j <= pos2; ++j) {
 			pop[pop_orisize].chromo[j] = pop[parent1].chromo[j];
 			pop[pop_orisize + 1].chromo[j] = pop[parent2].chromo[j];
@@ -153,7 +157,7 @@ void crossover(const DVector2D<PROCEDURE>& jobtable, DVector<CHROMO>& pop)
 
 		// global temp
 		chrtmp1 = pop[parent1].chromo;
-		chrtmp2 = pop[parent2].chromo;
+		chrtmp2 = pop[parent2].chromo;//复制一下两个父代 
 
 		for (int j = pos1; j <= pos2; ++j) {
 			for (int k = 0; k < chromo_len; ++k) {
@@ -170,8 +174,7 @@ void crossover(const DVector2D<PROCEDURE>& jobtable, DVector<CHROMO>& pop)
 					break;
 				}
 			}
-		}
-		// hu2 bi1 gai3 de5, gai3 lan4 le5.
+		}//删除中间重复的基因，保证染色体的正确性 
 		for (int j = 0, k = 0; j < chromo_len && k < chromo_len; ) {
 			if (pop[pop_orisize].chromo[j] == -1) {
 				while (chrtmp2[k] == -1) {
@@ -191,13 +194,16 @@ void crossover(const DVector2D<PROCEDURE>& jobtable, DVector<CHROMO>& pop)
 				++k;
 			}
 			++j;
-		}
+		}//把剩余元素按相对顺序插进去 
+		
 		pop[pop_orisize].time = chromo_time(jobtable, pop[pop_orisize].chromo, 1);
-		pop[pop_orisize + 1].time = chromo_time(jobtable, pop[pop_orisize + 1].chromo, 1);
-		pop_orisize += 2;
+		pop[pop_orisize + 1].time = chromo_time(jobtable, pop[pop_orisize + 1].chromo, 1);//计算两个新生成子代的时间 
+		pop_orisize += 2;//种群规模加2 
 	}
 } // void crossover(...)
 
+
+//4点自交函数  即前两个点确定的染色体片段和后两个点确定的染色体片段交换 
 void selfing_doubleseg(const DVector2D<PROCEDURE>& jobtable, DVector<CHROMO>& pop)
 {
 	int p[4]{ 0 };
@@ -209,7 +215,7 @@ void selfing_doubleseg(const DVector2D<PROCEDURE>& jobtable, DVector<CHROMO>& po
 			p[1] = dtl::xorshiftRand() % (chromo_len + 1);
 			p[2] = dtl::xorshiftRand() % (chromo_len + 1);
 			p[3] = dtl::xorshiftRand() % (chromo_len + 1);
-		}
+		}//产生4个不同的随机数 
 		for (int i = 2, flag = 1, temp; i >= 0 && flag == 1; --i) {
 			flag = 0;
 			for (int j = 0; j <= i; ++j) {
@@ -220,12 +226,11 @@ void selfing_doubleseg(const DVector2D<PROCEDURE>& jobtable, DVector<CHROMO>& po
 					flag = 1;
 				}
 			}
-		}
-		//std::cout << "points: " << p[0] << ' ' << p[1] << ' ' << p[2] << ' ' << p[3] << '\n';
+		}//对4个随机数从小到大排序 
 		pop.resize(pop.size() + 1);
 		pop[pop_orisize + i].chromo.resize(chromo_len);
 
-		int parent = dtl::xorshiftRand() % POPULATION_SIZE;
+		int parent = dtl::xorshiftRand() % POPULATION_SIZE;//随机产生父代 
 
 		int k = 0;
 		for (int j = 0; j < p[0]; ++j) {
@@ -248,11 +253,13 @@ void selfing_doubleseg(const DVector2D<PROCEDURE>& jobtable, DVector<CHROMO>& po
 			pop[pop_orisize + i].chromo[k] = pop[parent].chromo[j];
 			++k;
 		}
-
-		pop[pop_orisize + i].time = chromo_time(jobtable, pop[pop_orisize + i].chromo, 1);
+		//按照自交规则生成子代 
+		pop[pop_orisize + i].time = chromo_time(jobtable, pop[pop_orisize + i].chromo, 1);//计算新生成子代的时间 
 	}
 } // void selfing_doubleseg(...)
 
+
+//1点自交，随机选择父代，即把随机点前后的染色体片段交换 
 void selfing(const DVector2D<PROCEDURE>& jobtable, DVector<CHROMO>& pop)
 {
 	for (int i = 0, pos, rndchr; i < POPULATION_SIZE * CROSSOVER_RATE; ++i) {
@@ -266,11 +273,12 @@ void selfing(const DVector2D<PROCEDURE>& jobtable, DVector<CHROMO>& pop)
 		for (int j = 0; j < pos; ++j) {
 			pop[POPULATION_SIZE + i].chromo[chromo_len - pos + j] = pop[rndchr].chromo[j];
 		}
-		pop[POPULATION_SIZE + i].time = chromo_time(jobtable, pop[POPULATION_SIZE + i].chromo, 0);
+		pop[POPULATION_SIZE + i].time = chromo_time(jobtable, pop[POPULATION_SIZE + i].chromo, 0);//计算新生成的子代的时间 
 	}
 } // void selfing(...)
 
 
+//2点自交函数（随机选择父代），把两个随机点确定的片段和前面的片段交换 
 void selfing_multi(const DVector2D<PROCEDURE>& jobtable, DVector<CHROMO>& pop)
 {
 	int parent;
@@ -278,9 +286,9 @@ void selfing_multi(const DVector2D<PROCEDURE>& jobtable, DVector<CHROMO>& pop)
 	int pos2;
 	int temp;
 	for (int i = 0; i < POPULATION_SIZE * CROSSOVER_RATE; ++i) {
-		parent = dtl::xorshiftRand() % POPULATION_SIZE;
+		parent = dtl::xorshiftRand() % POPULATION_SIZE;//随机选择父代 
 		pos1 = dtl::xorshiftRand() % (chromo_len - 2) + 1;
-		pos2 = dtl::xorshiftRand() % (chromo_len - 2) + 1;
+		pos2 = dtl::xorshiftRand() % (chromo_len - 2) + 1;//随机产生两个随机点 
 		if (pos1 > pos2) {
 			temp = pos1;
 			pos1 = pos2;
@@ -297,12 +305,14 @@ void selfing_multi(const DVector2D<PROCEDURE>& jobtable, DVector<CHROMO>& pop)
 		}
 		for (int j = pos2 + 1; j < chromo_len; ++j) {
 			pop[POPULATION_SIZE + i].chromo[j] = pop[parent].chromo[j];
-		}
-		pop[POPULATION_SIZE + i].time = chromo_time(jobtable, pop[POPULATION_SIZE + i].chromo, 1);
+		}//按照2点自交的规则产生子代 
+		
+		pop[POPULATION_SIZE + i].time = chromo_time(jobtable, pop[POPULATION_SIZE + i].chromo, 1);//计算新生成子代的时间 
 	}
 } // void selfing_multi(...)
 
 
+//2点自交函数（按排序选择父代），不过选取父代的方式为按顺序选择 
 void selfing_multi_pickbysort(const DVector2D<PROCEDURE>& jobtable, DVector<CHROMO>& pop)
 {
 	int parent;
@@ -342,7 +352,9 @@ void selfing_multi_pickbysort(const DVector2D<PROCEDURE>& jobtable, DVector<CHRO
 	}
 } // void selfing_multi(...)
 
-  /**************************** filter **************************/
+
+/**************************** filter **************************/
+//此函数为筛选函数（平均值筛选），将时间高于平均值的染色体删除  
 void filter(DVector<CHROMO>& pop)
 {
 	static int count = 1;
@@ -391,6 +403,7 @@ void filter(DVector<CHROMO>& pop)
 } // void filter(...)
 
 
+//排序筛选函数 
 void filter_by_sort(DVector<CHROMO>& pop)
 {
 	qsort(pop, 0, pop.size() - 1);
@@ -398,6 +411,7 @@ void filter_by_sort(DVector<CHROMO>& pop)
 } // void filter_by_sort(...)
 
 
+// 轮盘赌筛选函数 
 DVector<double> accumulate_rate;
 DVector<bool> marked;
 void filter_roulette(DVector<CHROMO>& pop)
@@ -409,7 +423,7 @@ void filter_roulette(DVector<CHROMO>& pop)
 	int popsize = pop.size();
 	for (int i = 0; i < popsize; ++i) {
 		marked[i] = false;
-	}
+	}//布尔数组初始化 
 
 	for (int i = 0; i < popsize; ++i) {
 		sumtime += pop[i].time;
@@ -417,10 +431,10 @@ void filter_roulette(DVector<CHROMO>& pop)
 	accumulate_rate[0] = 0;
 	for (int i = 1; i < popsize + 1; ++i) {
 		accumulate_rate[i] = accumulate_rate[i - 1] + pop[i - 1].time / sumtime;
-	}
+	}//计算累计概率 
 	for (int i = popsize - POPULATION_SIZE, j; i > 0; ) {
-		double rnd = static_cast<double>(dtl::xorshiftRand()) / dtl::xorshiftRANDMAX;
-		for (j = 1; accumulate_rate[j - 1] <= rnd; ++j);
+		double rnd = static_cast<double>(dtl::xorshiftRand()) / dtl::xorshiftRANDMAX;//产生随机概率 
+		for (j = 1; accumulate_rate[j - 1] <= rnd; ++j);//当前累计概率比产生的随机概率小的时候 
 		if (!marked[j]) {
 			marked[j] = true;
 			--i;
@@ -440,6 +454,7 @@ void filter_roulette(DVector<CHROMO>& pop)
 } // void filter_roulette(...)
 
 
+//锦标赛筛选函数，随机选出3个染色体，最差的一个染色体被标记，即在最后要被筛选掉 （放回式） 
 DVector<bool> marked_tor;
 void filter_tournament(DVector<CHROMO>& pop)
 {
@@ -455,7 +470,7 @@ void filter_tournament(DVector<CHROMO>& pop)
 	for (int i = 0; i < POPULATION_SIZE; ) {
 		s1 = dtl::xorshiftRand() % popsize;
 		s2 = dtl::xorshiftRand() % popsize;
-		s3 = dtl::xorshiftRand() % popsize;
+		s3 = dtl::xorshiftRand() % popsize;//随机选出3个染色体，进行比较 
 		if (pop[s1].time <= pop[s2].time) {
 			if (pop[s1].time <= pop[s3].time) {
 				min_num = s1;
@@ -476,12 +491,12 @@ void filter_tournament(DVector<CHROMO>& pop)
 			marked_tor[min_num] = true;
 			++i;
 		}
-	}
+	}//选出最差的一个 
 	for (int i = popsize - 1; i >= 0; --i) {
 		if (!marked[i]) {
 			if (i == pop.size() - 1) {
 				pop.pop_back();
-			}
+			}//如果没有被标记过，标记下来，表明它需要删 
 			else {
 				pop[i] = pop.back();
 				pop.pop_back();
@@ -491,7 +506,8 @@ void filter_tournament(DVector<CHROMO>& pop)
 } // void filter_tournament(DVector<CHROMO>& pop)
 
 
-  /***************************** mutate *****************************/
+/***************************** mutate *****************************/
+//此函数为2点变异函数，产生两个随机点，交换这两点的基因  （采用变异率） 
 void mutate(DVector<CHROMO>& pop)
 {
 	for (int i = 0; i < POPULATION_SIZE * MUTATION_RATE_BAD; ++i) {
@@ -502,6 +518,8 @@ void mutate(DVector<CHROMO>& pop)
 	}
 } // void mutate(...)
 
+
+//全变异函数， 所有的染色体都变异，每条染色体变异出两个个体，和自身比，选出最好的一个 
 void mutate_all(const DVector2D<PROCEDURE>& jobtable, DVector<CHROMO>& pop)
 {
 	DVector<int> c1;
@@ -514,13 +532,13 @@ void mutate_all(const DVector2D<PROCEDURE>& jobtable, DVector<CHROMO>& pop)
 	for (int i = 0; i < POPULATION_SIZE; ++i) {
 		rndchr = dtl::xorshiftRand() % POPULATION_SIZE;
 		pos1 = dtl::xorshiftRand() % chromo_len;
-		pos2 = dtl::xorshiftRand() % chromo_len;
+		pos2 = dtl::xorshiftRand() % chromo_len;//产生两个随机点 
 		c1 = pop[rndchr].chromo;
-		c1.swap(pos1, pos2);
+		c1.swap(pos1, pos2);//变异个体1产生 
 		pos1 = dtl::xorshiftRand() % chromo_len;
-		pos2 = dtl::xorshiftRand() % chromo_len;
+		pos2 = dtl::xorshiftRand() % chromo_len;//产生两个随机点 
 		c2 = pop[rndchr].chromo;
-		c2.swap(pos1, pos2);
+		c2.swap(pos1, pos2);//变异个体2产生 
 		t1 = chromo_time(jobtable, c1, 1);
 		t2 = chromo_time(jobtable, c2, 1);
 		if (t1 < t2) {
@@ -537,6 +555,7 @@ void mutate_all(const DVector2D<PROCEDURE>& jobtable, DVector<CHROMO>& pop)
 } // void mutate_all(...)
 
 
+//全排列变异，即随机3个随机点，全排列算上自身一共6个个体，选出最好的一个，因为有6个染色体，所以函数名也叫mutate_six; 
 DVector<CHROMO> son;
 void mutate_six(const DVector2D<PROCEDURE>& jobtable, DVector<CHROMO>& pop)
 {
@@ -546,7 +565,7 @@ void mutate_six(const DVector2D<PROCEDURE>& jobtable, DVector<CHROMO>& pop)
 	}
 	int pos1 = dtl::xorshiftRand() % chromo_len;
 	int pos2 = dtl::xorshiftRand() % chromo_len;
-	int pos3 = dtl::xorshiftRand() % chromo_len;
+	int pos3 = dtl::xorshiftRand() % chromo_len;//产生3个随机点 
 	for (int i = 0; i < POPULATION_SIZE; ++i) {
 		son[0] = pop[i];
 		son[0].chromo.swap(pos2, pos3);
@@ -562,7 +581,7 @@ void mutate_six(const DVector2D<PROCEDURE>& jobtable, DVector<CHROMO>& pop)
 
 		son[4] = son[3];
 		son[4].chromo.swap(pos1, pos2);
-
+		//全排列 产生5个子代，算上自己6个染色体 
 		int bestpos = -1;
 		TIME besttime = pop[i].time;
 		for (int j = 0; j < 5; ++j) {
@@ -571,7 +590,7 @@ void mutate_six(const DVector2D<PROCEDURE>& jobtable, DVector<CHROMO>& pop)
 				besttime = son[j].time;
 				bestpos = j;
 			}
-		}
+		}//选出最好的一个染色体 
 		if (0 <= bestpos && bestpos < 5) {
 			pop[i] = son[bestpos];
 		}
@@ -610,6 +629,7 @@ void qsort(DVector<CHROMO>& pop, int lo, int hi)
 } // void qsort(...)
 
 
+//此函数为计算时间函数（计算每条染色体的函数），主体思想是：当要加工某个工序的时候，去看它上一道工序是否做完，它所用的机器是否空闲 
 TIME chromo_time(const DVector2D<PROCEDURE>& jobtable, const DVector<int>& chromo, int flag)
 {
 	static bool fir = true;
@@ -635,36 +655,37 @@ TIME chromo_time(const DVector2D<PROCEDURE>& jobtable, const DVector<int>& chrom
 			}
 		}
 	}
-
-	int product = 0;
-	int proced = 0;
-	int machine = 0;
-	TIME begtime = 0;
-	TIME lasting = 0;
-	for (int i = 0; i < chromo_len; ++i) {
+	//以上为 把工序号置为0，机器的开始时间置为0，工序结束时间置为0 
+	
+	int product = 0;//工件号 
+	int proced = 0;//工序号 
+	int machine = 0;//机器号 
+	TIME begtime = 0;//开始时间 
+	TIME lasting = 0;//消耗时间 
+	for (int i = 0; i < chromo_len; ++i) {  //遍历染色体 
 		int a = machine_spare.size();
 		product = chromo[i];
-		proced = process[product];
-		if (proced == 0) {
+		proced = process[product]; 
+		if (proced == 0) { //如果是第一道工序，没有上一道工序 ，所以只关注机器是否空闲 
 			machine = jobtable[product][proced].machine;
 			begtime = machine_spare[machine];
 			lasting = jobtable[product][proced].duration;
-			endtime[product][proced] = begtime + lasting;
-			machine_spare[machine] = begtime + lasting;
+			endtime[product][proced] = begtime + lasting;//更新该工序结束时间 
+			machine_spare[machine] = begtime + lasting;//更新该机器空闲时间点 
 		}
-		else {
+		else { //如果不是第一道工序 
 			machine = jobtable[product][proced].machine;
-			if (machine_spare[machine] >= endtime[product][proced - 1]) {
+			if (machine_spare[machine] >= endtime[product][proced - 1]) { //比较一下上一道工序做完的时间和目前工序所用机器空闲的时间，取较大值为该工序开始时间 
 				begtime = machine_spare[machine];
 			}
 			else {
 				begtime = endtime[product][proced - 1];
 			}
 			lasting = jobtable[product][proced].duration;
-			endtime[product][proced] = begtime + lasting;
-			machine_spare[machine] = begtime + lasting;
+			endtime[product][proced] = begtime + lasting;//更新该工序结束时间
+			machine_spare[machine] = begtime + lasting;//更新该机器空闲时间点
 		}
-		++process[product];
+		++process[product];//该工序做完了，更新工序号，为下一道工序做准备 
 	}
 	TIME tottime = 0;
 	int machine_spare_size = machine_spare.size();
@@ -677,7 +698,7 @@ TIME chromo_time(const DVector2D<PROCEDURE>& jobtable, const DVector<int>& chrom
 }
 
 
-// for testing, having lots of repeating codes w/ chromo_time()
+//此函数为获取加工过程的函数，即把每个工序的开始时间，结束时间，所用的机器号记录下来，和计算时间函数基本相似，增加了一个二维结构体数组储存过程。 
 DVector2D<MACHINE_TASK> get_result_table(const DVector2D<PROCEDURE>& jobtable, const CHROMO& CHR)
 {
 	DVector2D<MACHINE_TASK> res;
@@ -741,13 +762,13 @@ DVector2D<MACHINE_TASK> get_result_table(const DVector2D<PROCEDURE>& jobtable, c
 			endtime[product][proced] = begtime + lasting;
 			machine_spare[machine] = begtime + lasting;
 		}
-		/*******repeating end*******/
+		//以上为计算时间函数 
 		res[machine][called[machine]].product = product;
 		res[machine][called[machine]].proced = proced;
 		res[machine][called[machine]].start = begtime;
 		res[machine][called[machine]].end = begtime + lasting;
 		++called[machine];
-
+		//用一个二维结构体数组记录调用过程 
 		++process[product];
 	}
 	return res;
