@@ -1,3 +1,10 @@
+/***************************************************************/
+//Name: jobshop_io.h
+//By: Zhang Kaishun
+//Last Modified: 2018/5/25
+// IO stuff
+/***************************************************************/
+
 #pragma once
 #include <iostream>
 #include <fstream>
