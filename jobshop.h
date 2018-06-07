@@ -1,4 +1,9 @@
-//1¡¢aaaa 2¡¢out time
+/***************************************************************/
+//Name: jobshop.h
+//By: PUBLIC
+//Last Modified: 2018/5/28
+/***************************************************************/
+
 #pragma once
 #include <string>
 #include <memory>
