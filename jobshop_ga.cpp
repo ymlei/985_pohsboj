@@ -1,14 +1,15 @@
+/***************************************************************/
+//Name: jobshop_ga.cpp
+//By: Liu Xiangyu & Lei Yiming
+//Last Modified: 2018/5/28
+/***************************************************************/
+
 #include "jobshop_ga.h"
 /*************** GA global vals ******************/
 int product_count;
 int proced_count;
 int chromo_len;
 int machine_count;
-
-// time calculate
-DVector<int> machine_spare;
-DVector<int> process;
-DVector2D<TIME> endtime;
 
 /****************************** main func ******************************/
 
@@ -628,7 +629,10 @@ void qsort(DVector<CHROMO>& pop, int lo, int hi)
 	}
 } // void qsort(...)
 
-
+// time calculate
+DVector<int> machine_spare;
+DVector<int> process;
+DVector2D<TIME> endtime;
 //此函数为计算时间函数（计算每条染色体的函数），主体思想是：当要加工某个工序的时候，去看它上一道工序是否做完，它所用的机器是否空闲 
 TIME chromo_time(const DVector2D<PROCEDURE>& jobtable, const DVector<int>& chromo, int flag)
 {
