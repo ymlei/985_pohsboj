@@ -1,6 +1,6 @@
 /***************************************************************/
 //Name: DVector.h
-//Created By: DOG
+//By: Zhang Kaishun
 //Last Modified: 2018/5/28
 //Known Issues:
 //	  1. exception chaos
