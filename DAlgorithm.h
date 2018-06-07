@@ -1,9 +1,9 @@
-/***********************************/
-// Name: DAlgorithm.h
-// Created By: DOG
-// Last Modified: 2018/5/18
+/***************************************************************/
+//Name: DAlgorithm.cpp
+//By: Zhang Kaishun
+//Last Modified: 2018/5/18
 // Including some public algorithms.
-/***********************************/
+/***************************************************************/
 
 #pragma once
 #include <ctime>
